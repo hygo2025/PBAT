@@ -1,4 +1,5 @@
 pytorch-lightning == 1.5.3
 torch >= 1.3.0
-jsonargparse >= 3.19.3, < 4.0.0
+#jsonargparse >= 3.19.3, < 4.0.0
 pandas
+jsonargparse[signatures]>=3.19.3,<4.0.0
