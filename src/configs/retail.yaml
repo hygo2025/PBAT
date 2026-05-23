@@ -29,6 +29,12 @@ data:
 
 trainer:
   default_root_dir: logs/retail/full
+  logger:
+    class_path: pytorch_lightning.loggers.TensorBoardLogger
+    init_args:
+      save_dir: logs
+      name: retail
+      version: full
   callbacks:
     - class_path: pytorch_lightning.callbacks.EarlyStopping
       init_args:

@@ -4,11 +4,13 @@
 from .yelp import YelpDataset
 from .retail import RetailDataset
 from .ijcai import IjcaiDataset
+from .grupozap import GrupozapDataset
 
 DATASETS = {
     YelpDataset.code(): YelpDataset,
     RetailDataset.code(): RetailDataset,
-    IjcaiDataset.code(): IjcaiDataset
+    IjcaiDataset.code(): IjcaiDataset,
+    GrupozapDataset.code(): GrupozapDataset,
 }
 
 

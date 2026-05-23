@@ -5,19 +5,19 @@ model:
       max_len: 50
       d_model: 16
       n_head: 2
-      n_b: 4
-      dropout: 0.1
+      n_b: 5
+      dropout: 0.2
       n_layer: 2
-      num_items: 22734
-      num_users: 19800
+      num_items: 3095649
+      num_users: 3966399
 
 data:
-  dataset_code: 'yelp'
-  target_behavior: 'pos'
+  dataset_code: 'grupozap'
+  target_behavior: 'lead'
   multi_behavior: True
-  min_uc: 3
-  num_items: 22734
-  num_users: 19800
+  min_uc: 5
+  num_items: 3095649
+  num_users: 3966399
   max_len: 50
   mask_prob: 0.2
   num_workers: 4
@@ -28,21 +28,22 @@ data:
   predict_only_target: False
 
 trainer:
-  default_root_dir: logs/yelp/full
+  default_root_dir: logs/grupozap/full
   logger:
     class_path: pytorch_lightning.loggers.TensorBoardLogger
     init_args:
       save_dir: logs
-      name: yelp
+      name: grupozap
       version: full
   callbacks:
     - class_path: pytorch_lightning.callbacks.EarlyStopping
       init_args:
         monitor: 'Val:NDCG@10'
-        patience: 30
-        mode: max  
-  gpus: '1'
-  accelerator: ddp
+        patience: 10
+        mode: max
+  accelerator: gpu
+  devices: 1
+  accumulate_grad_batches: 1
 seed_everything: 42
 
 optimizer:

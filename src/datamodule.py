@@ -70,6 +70,7 @@ class RecDataModule(pl.LightningDataModule):
             self.train_batch_size,
             self.val_batch_size,
             self.predict_only_target,
+            self.target_behavior,
         )
 
     def train_dataloader(self):

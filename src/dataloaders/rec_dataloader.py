@@ -20,11 +20,12 @@ class RecDataloader(AbstractDataloader):
             train_batch_size,
             val_batch_size,
             predict_only_target=False,
+            target_behavior=None,
         ):
         super().__init__(dataset,
             val_negative_sampler_code,
             val_negative_sample_size)
-        self.target_code = self.bmap.get('buy') if self.bmap.get('buy') else self.bmap.get('pos')
+        self.target_code = (self.bmap.get(target_behavior) if target_behavior else None) or self.bmap.get('buy') or self.bmap.get('pos')
         self.seg_len = seg_len
         self.mask_prob = mask_prob
         self.num_items = num_items
