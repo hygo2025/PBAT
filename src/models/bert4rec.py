@@ -71,8 +71,9 @@ class BERT(pl.LightningModule):
 
         '''Personalized Pattern Learning'''
 
-        b_mi = self.b_embedding_m(torch.LongTensor(u_id.size(0)*[[0,1,2,3,4]]).cuda()).squeeze()
-        b_ci = self.b_embedding_c(torch.LongTensor(u_id.size(0)*[[0,1,2,3,4]]).cuda()).squeeze()
+        behavior_ids = torch.arange(self.n_b + 1, device=u_id.device).unsqueeze(0).repeat(u_id.size(0), 1)
+        b_mi = self.b_embedding_m(behavior_ids).squeeze()
+        b_ci = self.b_embedding_c(behavior_ids).squeeze()
         b_ci = self.activation(b_ci) + 1
         
         # Personalized patterns distributions
@@ -85,13 +86,20 @@ class BERT(pl.LightningModule):
         Weight_user_behavior = -wasserstein_distance_matmul(P_user_behavior_m, P_user_behavior_c, P_user_behavior_m, P_user_behavior_c)
 
         # corresponding behavior-relation representation
-        bb_m = torch.zeros(u_id.size(0),self.n_b+1,self.n_b+1,self.d_model).cuda()
-        bb_c = torch.zeros(u_id.size(0),self.n_b+1,self.n_b+1,self.d_model).cuda()
+        bb_m = torch.zeros(u_id.size(0), self.n_b + 1, self.n_b + 1, self.d_model, device=u_id.device)
+        bb_c = torch.zeros(u_id.size(0), self.n_b + 1, self.n_b + 1, self.d_model, device=u_id.device)
 
         for i in range(self.n_b):
             for j in range(self.n_b):
-                bb_m[:,i+1,j+1,:] = torch.matmul(Weight_user_behavior[:,i+1,j+1].unsqueeze(1),self.bb_embedding_m(torch.LongTensor([i*4+j+1]).cuda()))
-                bb_c[:,i+1,j+1,:] = torch.matmul(Weight_user_behavior[:,i+1,j+1].unsqueeze(1),self.bb_embedding_c(torch.LongTensor([i*4+j+1]).cuda()))
+                bb_index = torch.LongTensor([i * self.n_b + j + 1]).to(u_id.device)
+                bb_m[:, i + 1, j + 1, :] = torch.matmul(
+                    Weight_user_behavior[:, i + 1, j + 1].unsqueeze(1),
+                    self.bb_embedding_m(bb_index),
+                )
+                bb_c[:, i + 1, j + 1, :] = torch.matmul(
+                    Weight_user_behavior[:, i + 1, j + 1].unsqueeze(1),
+                    self.bb_embedding_c(bb_index),
+                )
         
         bb_c = self.activation(bb_c) + 1
 

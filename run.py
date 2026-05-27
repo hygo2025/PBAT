@@ -28,8 +28,12 @@ class PBATLightningCLI(LightningCLI):
 
 
 def cli_main():
-    cli = PBATLightningCLI(RecModel, RecDataModule, save_config_overwrite=True)
+    cli = PBATLightningCLI(
+        RecModel,
+        RecDataModule,
+        save_config_overwrite=True,
+        trainer_defaults={"logger": None},
+    )
 
 if __name__ == '__main__':
     cli_main()
-

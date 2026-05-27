@@ -8,11 +8,14 @@ from .utils import recalls_and_ndcgs_for_ks
 class RecModel(pl.LightningModule):
     def __init__(self,
             backbone: BERT,
+            num_negatives: int = 100,
         ):
         super().__init__()
         self.backbone = backbone
         self.n_b = backbone.n_b
         self.max_len = backbone.max_len
+        self.num_items = backbone.num_items
+        self.num_negatives = num_negatives
 
         self.head = WassersteinPredictionHead(backbone.d_model, backbone.num_items, self.backbone.item_embedding_m.token,self.backbone.item_embedding_c.token)
         self.loss = torch.nn.CrossEntropyLoss(ignore_index=0)
@@ -40,9 +43,31 @@ class RecModel(pl.LightningModule):
 
         valid_b_seq = b_seq.view(-1)[valid_index] # M
         valid_labels = labels[valid_index]
-        #valid_logits = self.head(valid_outputs, valid_b_seq) # M
-        valid_logits = self.head(valid_outputsm, valid_outputsc, valid_b_seq)
-        loss = self.loss(valid_logits, valid_labels)
+        if self.num_negatives > 0:
+            negatives = torch.randint(
+                1,
+                self.num_items + 1,
+                (valid_labels.size(0), self.num_negatives),
+                device=valid_labels.device,
+            )
+            while True:
+                collision = negatives.eq(valid_labels.unsqueeze(1))
+                if not collision.any():
+                    break
+                negatives[collision] = torch.randint(
+                    1,
+                    self.num_items + 1,
+                    (collision.sum().item(),),
+                    device=valid_labels.device,
+                )
+            candidates = torch.cat([valid_labels.unsqueeze(1), negatives], dim=1)
+            valid_logits = self.head(valid_outputsm, valid_outputsc, valid_b_seq, candidates)
+            target = torch.zeros(valid_labels.size(0), dtype=torch.long, device=valid_labels.device)
+            # Ignore padding only for full softmax; sampled softmax needs index 0 as a valid target.
+            loss = torch.nn.functional.cross_entropy(valid_logits, target, ignore_index=-100)
+        else:
+            valid_logits = self.head(valid_outputsm, valid_outputsc, valid_b_seq)
+            loss = self.loss(valid_logits, valid_labels)
         loss = loss.unsqueeze(0)
         return {'loss':loss}
 

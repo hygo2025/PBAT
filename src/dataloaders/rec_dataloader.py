@@ -38,7 +38,10 @@ class RecDataloader(AbstractDataloader):
     def get_train_loader(self):
         dataset = self._get_train_dataset()
         dataloader = data_utils.DataLoader(dataset, batch_size=self.train_batch_size,
-                                           shuffle=True, num_workers=self.num_workers)
+                                           shuffle=True,
+                                           num_workers=self.num_workers,
+                                           pin_memory=True,
+                                           persistent_workers=self.num_workers > 0)
         return dataloader
 
     def _get_train_dataset(self):
@@ -48,7 +51,10 @@ class RecDataloader(AbstractDataloader):
     def get_val_loader(self):
         dataset = self._get_eval_dataset()
         dataloader = data_utils.DataLoader(dataset, batch_size=self.val_batch_size,
-                                           shuffle=False, num_workers=self.num_workers)
+                                           shuffle=False,
+                                           num_workers=self.num_workers,
+                                           pin_memory=True,
+                                           persistent_workers=self.num_workers > 0)
         return dataloader
 
     def _get_eval_dataset(self):

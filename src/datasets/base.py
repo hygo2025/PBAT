@@ -84,12 +84,17 @@ class AbstractDataset(metaclass=ABCMeta):
 
     def densify_index(self, df):
         print('Densifying index')
-        umap = {u: (i+1) for i, u in enumerate(set(df['uid']))}
-        smap = {s: (i+1) for i, s in enumerate(set(df['sid']))}
-        bmap = {b: (i+1) for i, b in enumerate(set(df['behavior']))}
-        df['uid'] = df['uid'].map(umap)
-        df['sid'] = df['sid'].map(smap)
-        df['behavior'] = df['behavior'].map(bmap)
+        uid_cat = pd.Categorical(df['uid'])
+        sid_cat = pd.Categorical(df['sid'])
+        behavior_cat = pd.Categorical(df['behavior'])
+
+        umap = {u: (i + 1) for i, u in enumerate(uid_cat.categories)}
+        smap = {s: (i + 1) for i, s in enumerate(sid_cat.categories)}
+        bmap = {b: (i + 1) for i, b in enumerate(behavior_cat.categories)}
+
+        df['uid'] = uid_cat.codes + 1
+        df['sid'] = sid_cat.codes + 1
+        df['behavior'] = behavior_cat.codes + 1
         return df, umap, smap, bmap
     
     # def densify_index(self, df):
